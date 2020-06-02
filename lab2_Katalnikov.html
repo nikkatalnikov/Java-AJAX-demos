@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <canvas id="gbp_vs_usd_chart"></canvas>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+<script>
+    // To open in Chrome on Mac OS, disable CORS policy:
+    // open -n -a /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --args --user-data-dir=/tmp/chrome_dev_test --disable-web-security
+    const ctx = document.getElementById('gbp_vs_usd_chart').getContext('2d');
+
+    fetch("https://api.exchangeratesapi.io/history?start_at=2020-01-01&end_at=2020-05-01&symbols=USD,GBP")
+    .then(response => {
+        response.json().then(result => {
+            const GBPVsUSDTimesireis = _
+                .chain(result)
+                .get('rates')
+                .mapValues(x => _.values(x)[0])
+                .value()
+
+            new Chart(ctx, {
+                type: 'bar',
+                options: {
+                    layout: {
+                        padding: {
+                            left: 100,
+                            right: 100,
+                            top: 100,
+                            bottom: 100
+                        }
+                    }
+                },
+                data: {
+                    labels: _.keys(GBPVsUSDTimesireis)
+                        .map(x => new Date(x))
+                        .map(d => d.toLocaleDateString("en-US", {
+                                weekday: 'short',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric' })
+                        ),
+                    datasets: [{
+                        label: 'GBP vs USD',
+                        backgroundColor: 'rgb(255, 99, 132)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        data: _.values(GBPVsUSDTimesireis)
+                    }]
+                },
+            });
+
+        })
+    })
+    .catch(err => {
+        console.log(err);
+    });
+
+</script>
+</html>
